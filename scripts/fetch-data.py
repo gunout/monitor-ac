@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 import urllib.request
 from pathlib import Path
-
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
-
 URL = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/exports/json"
-
 def download(url, output):
     print(f"Telechargement : {output}")
     try:
@@ -18,6 +15,5 @@ def download(url, output):
         print(f"  OK - {len(data):,} octets")
     except Exception as e:
         print(f"  Erreur : {e}")
-
 if __name__ == "__main__":
     download(URL, DATA_DIR / "prix-carburants.json")
