@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitor Aides Carburant 2026 · Pro</title>
+<title>Monitor Aides Carburant 2026 · Pro Live</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.11.2/dist/dsfr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -31,6 +31,7 @@ html{scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--g50);color:var(--g900);font-size:14px;line-height:1.6;overflow-x:hidden}
 
 .band{height:6px;background:linear-gradient(to right,var(--blue) 0%,var(--blue) 33.33%,var(--white) 33.33%,var(--white) 66.66%,var(--red) 66.66%,var(--red) 100%);position:fixed;top:0;left:0;right:0;z-index:1000}
+.progress{position:fixed;top:6px;left:0;height:3px;background:var(--red);z-index:1001;transition:width .1s;width:0}
 
 .marque{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--white);border-bottom:1px solid var(--g200);margin-top:6px}
 .marque-logo{font-weight:700;font-size:13px;text-transform:uppercase;border-right:1px solid var(--g200);padding-right:12px}
@@ -47,9 +48,17 @@ body{font-family:var(--font);background:var(--g50);color:var(--g900);font-size:1
 
 .container{max-width:1400px;margin:0 auto;padding:24px}
 
-/* NAV TABS */
+.status-bar{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:16px 20px;
+  margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.status-bar .dot{width:12px;height:12px;border-radius:50%;background:var(--yellow);flex-shrink:0}
+.status-bar .dot.ok{background:var(--green);animation:pulse 2s infinite}
+.status-bar .dot.err{background:var(--red)}
+.status-bar .txt{font-size:13px;color:var(--g700);flex:1}
+.status-bar .txt strong{color:var(--blue)}
+.status-bar .meta{font-family:var(--mono);font-size:11px;color:var(--g500)}
+
 .nav-tabs{display:flex;gap:4px;background:var(--white);border-radius:12px;padding:6px;margin-bottom:24px;box-shadow:var(--shadow);overflow-x:auto}
-.nav-tab{flex:1;min-width:140px;padding:12px 20px;border:none;background:transparent;color:var(--g700);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.nav-tab{flex:1;min-width:140px;padding:12px 20px;border:none;background:transparent;color:var(--g700);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;font-family:var(--font)}
 .nav-tab:hover{background:var(--g50);color:var(--blue)}
 .nav-tab.active{background:var(--blue);color:var(--white);box-shadow:0 4px 12px rgba(0,0,145,.3)}
 
@@ -57,7 +66,6 @@ body{font-family:var(--font);background:var(--g50);color:var(--g900);font-size:1
 .tab-content.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* HERO */
 .hero{background:linear-gradient(135deg,var(--blue),#1e1eb5);color:var(--white);border-radius:16px;padding:40px;margin-bottom:24px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-50%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 70%);border-radius:50%}
 .hero h2{font-size:32px;font-weight:800;margin-bottom:12px;position:relative}
@@ -67,8 +75,7 @@ body{font-family:var(--font);background:var(--g50);color:var(--g900);font-size:1
 .hero .mi .l{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.85;font-weight:600}
 .hero .mi .v{font-size:26px;font-weight:800;font-family:var(--mono);margin-top:6px;line-height:1}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-bottom:24px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:24px}
 .card{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:24px;position:relative;overflow:hidden;transition:.25s;cursor:pointer}
 .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
 .card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--blue);transition:.3s}
@@ -78,23 +85,20 @@ body{font-family:var(--font);background:var(--g50);color:var(--g900);font-size:1
 .card:hover::before{width:6px}
 .card .icon{font-size:28px;margin-bottom:12px;display:block}
 .card .l{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--g500);font-weight:700}
-.card .v{font-size:32px;font-weight:800;color:var(--blue);margin:8px 0;font-family:var(--mono);line-height:1}
+.card .v{font-size:28px;font-weight:800;color:var(--blue);margin:8px 0;font-family:var(--mono);line-height:1}
 .card .u{font-size:12px;color:var(--g500)}
 .card .d{font-size:12px;color:var(--g700);margin-top:8px}
 
-/* SECTIONS */
 .section{background:var(--white);border:1px solid var(--g200);border-radius:16px;padding:28px;margin-bottom:24px;box-shadow:var(--shadow)}
 .section h3{font-size:18px;font-weight:700;color:var(--blue);padding-bottom:14px;margin-bottom:20px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:10px}
 
-/* TABLES */
 table{width:100%;border-collapse:collapse;font-size:13px}
 table th{background:var(--g50);padding:14px;text-align:left;font-weight:700;color:var(--blue);border-bottom:2px solid var(--g200);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
 table td{padding:14px;border-bottom:1px solid var(--g100);color:var(--g700)}
 table tr:last-child td{border-bottom:none}
-table tbody tr{transition:.15s;cursor:pointer}
-table tbody tr:hover{background:var(--g50);transform:scale(1.005)}
+table tbody tr{transition:.15s}
+table tbody tr:hover{background:var(--g50)}
 
-/* TAGS */
 .tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .tag.grand{background:#d6e9ff;color:#003c99}
 .tag.trans{background:#b8fec9;color:#0d5726}
@@ -106,18 +110,15 @@ table tbody tr:hover{background:var(--g50);transform:scale(1.005)}
 .tag.urgent{background:#ffe9b8;color:#7a4d00;animation:blink 1.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.6}}
 
-/* CHART */
 .chart{position:relative;height:340px;margin-top:20px}
 .chart-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.chart-filter{padding:6px 14px;border:1px solid var(--g200);background:var(--white);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;color:var(--g700)}
+.chart-filter{padding:6px 14px;border:1px solid var(--g200);background:var(--white);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;color:var(--g700);font-family:var(--font)}
 .chart-filter.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
 .chart-filter:hover:not(.active){background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 
-/* GRID 2 */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:900px){.g2{grid-template-columns:1fr}}
 
-/* CRITERIA */
 .crit{list-style:none;padding:0}
 .crit li{padding:12px 0;border-bottom:1px solid var(--g100);display:flex;align-items:flex-start;gap:12px;font-size:13px;transition:.15s}
 .crit li:hover{background:var(--g50);padding-left:8px;border-radius:6px}
@@ -126,7 +127,17 @@ table tbody tr:hover{background:var(--g50);transform:scale(1.005)}
 .crit .lb{color:var(--g700);flex:1}
 .crit .vl{font-family:var(--mono);font-weight:700;color:var(--blue);text-align:right;flex-shrink:0}
 
-/* LINKS */
+.grid-stations{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:20px}
+.station{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:16px;transition:.15s}
+.station:hover{background:var(--blue-soft);border-color:var(--blue);transform:translateX(4px)}
+.station .name{font-weight:700;font-size:13px;color:var(--g900);margin-bottom:4px}
+.station .city{font-size:11px;color:var(--g500);margin-bottom:10px}
+.station .prices{display:flex;gap:8px;flex-wrap:wrap}
+.station .price{background:var(--white);padding:4px 10px;border-radius:6px;font-size:11px;font-family:var(--mono);font-weight:700;border:1px solid var(--g200)}
+.station .price.gazole{color:#000091}
+.station .price.sp95{color:#E1000F}
+.station .price.e85{color:#00a95f}
+
 .links{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .link{display:flex;align-items:center;gap:14px;padding:18px;background:var(--g50);border:1px solid var(--g200);border-radius:12px;text-decoration:none;color:var(--g900);transition:.2s;position:relative;overflow:hidden}
 .link::after{content:'→';position:absolute;right:20px;font-size:20px;opacity:0;transform:translateX(-10px);transition:.3s;color:var(--white)}
@@ -137,17 +148,10 @@ table tbody tr:hover{background:var(--g50);transform:scale(1.005)}
 .link .lt{font-weight:700;font-size:14px}
 .link .ld{font-size:12px;color:var(--g500);margin-top:3px;transition:.2s}
 
-/* FOOTER */
-.footer{text-align:center;padding:40px 20px;color:var(--g500);font-size:12px;border-top:1px solid var(--g200);margin-top:40px}
-.footer .flag{font-size:20px;margin-bottom:12px}
-.footer strong{color:var(--blue)}
-
-/* ALERT */
 .alert{background:#fff8e6;border-left:4px solid var(--yellow);padding:16px 20px;border-radius:10px;font-size:13px;color:var(--g700);margin-bottom:20px;display:flex;gap:12px;align-items:flex-start}
 .alert strong{color:#8a5e00}
 .alert .ico{font-size:20px;flex-shrink:0}
 
-/* SIMULATEUR */
 .sim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:20px}
 .sim-field{display:flex;flex-direction:column;gap:6px}
 .sim-field label{font-size:12px;font-weight:600;color:var(--g700);text-transform:uppercase;letter-spacing:.5px}
@@ -160,184 +164,280 @@ table tbody tr:hover{background:var(--g50);transform:scale(1.005)}
 .sim-result .label{font-size:14px;opacity:.9;margin-top:8px}
 .sim-result .detail{font-size:12px;opacity:.8;margin-top:12px;max-width:500px;margin-left:auto;margin-right:auto}
 
-/* COMING SOON */
-.coming-soon{text-align:center;padding:60px 20px;color:var(--g500)}
-.coming-soon .ico{font-size:64px;margin-bottom:20px;opacity:.5}
-.coming-soon h3{font-size:20px;font-weight:700;color:var(--g700);margin-bottom:8px;border:none;padding:0;display:block}
+.footer{text-align:center;padding:40px 20px;color:var(--g500);font-size:12px;border-top:1px solid var(--g200);margin-top:40px}
+.footer .flag{font-size:20px;margin-bottom:12px}
+.footer strong{color:var(--blue)}
 
-/* SCROLL TOP */
 .scroll-top{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:var(--blue);color:var(--white);border:none;font-size:20px;cursor:pointer;box-shadow:var(--shadow-lg);opacity:0;visibility:hidden;transition:.3s;z-index:998}
 .scroll-top.visible{opacity:1;visibility:visible}
 .scroll-top:hover{background:var(--blue-hi);transform:translateY(-4px)}
-
-/* PROGRESS BAR */
-.progress{position:fixed;top:6px;left:0;height:3px;background:var(--red);z-index:1001;transition:width .1s;width:0}
 </style>
 </head>
 <body>
+
 <div class="band"></div>
 <div class="progress" id="progress"></div>
+
 <div class="marque">
-<div class="marque-logo">République<br>Française</div>
-<div class="marque-dev"><em>Liberté</em><em>Égalité</em><em>Fraternité</em></div>
+  <div class="marque-logo">République<br>Française</div>
+  <div class="marque-dev"><em>Liberté</em><em>Égalité</em><em>Fraternité</em></div>
 </div>
+
 <div class="topbar">
-<h1><span class="live"></span> Monitor Aides Carburant</h1>
-<span class="sub">Édition 2026 · Pro Interactive</span>
-<div class="topbar-right">
-<button class="btn-icon" id="themeToggle" title="Mode sombre">🌙</button>
-<button class="btn-icon" id="exportPdf" title="Export PDF">📄</button>
-<button class="btn-icon" id="printPage" title="Imprimer">🖨️</button>
+  <h1><span class="live"></span> Monitor Aides Carburant</h1>
+  <span class="sub">Édition 2026 · Pro Live Data</span>
+  <div class="topbar-right">
+    <button class="btn-icon" id="themeToggle" title="Mode sombre">🌙</button>
+    <button class="btn-icon" id="reloadData" title="Recharger">🔄</button>
+    <button class="btn-icon" id="exportPdf" title="Export PDF">📄</button>
+    <button class="btn-icon" id="printPage" title="Imprimer">🖨️</button>
+  </div>
 </div>
-</div>
+
 <div class="container">
-<div class="nav-tabs">
-<button class="nav-tab active" data-tab="overview">📊 Vue d ensemble</button>
-<button class="nav-tab" data-tab="calendar">📅 Calendrier</button>
-<button class="nav-tab" data-tab="simulator">🧮 Simulateur</button>
-<button class="nav-tab" data-tab="charts">📈 Graphiques</button>
-<button class="nav-tab" data-tab="links">🔗 Liens</button>
+
+  <div class="status-bar">
+    <div class="dot" id="statusDot"></div>
+    <div class="txt" id="statusTxt">Chargement des données…</div>
+    <div class="meta" id="statusMeta"></div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="overview">📊 Vue d'ensemble</button>
+    <button class="nav-tab" data-tab="data">⛽ Données live</button>
+    <button class="nav-tab" data-tab="calendar">📅 Calendrier</button>
+    <button class="nav-tab" data-tab="simulator">🧮 Simulateur</button>
+    <button class="nav-tab" data-tab="charts">📈 Graphiques</button>
+    <button class="nav-tab" data-tab="links">🔗 Liens</button>
+  </div>
+
+  <!-- TAB 1: OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="hero">
+      <h2>Aides au carburant 2026</h2>
+      <p>Dispositif exceptionnel mis en place pour atténuer l'impact de la hausse des prix des carburants sur les ménages et les entreprises françaises.</p>
+      <div class="meta">
+        <div class="mi"><div class="l">Grands Rouleurs</div><div class="v" data-count="100">0 €</div></div>
+        <div class="mi"><div class="l">Bénéficiaires</div><div class="v" data-count="5.5" data-suffix=" M">0</div></div>
+        <div class="mi"><div class="l">Date limite</div><div class="v">30/09/26</div></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card"><span class="icon">👤</span><div class="l">Grands Rouleurs</div><div class="v" data-count="100">0</div><div class="u">€ par bénéficiaire</div><div class="d">≥ 15 km ou 8 000 km/an</div></div>
+      <div class="card g"><span class="icon">🚛</span><div class="l">Transporteurs</div><div class="v" data-count="60000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">Barème par véhicule</div></div>
+      <div class="card y"><span class="icon">🌾</span><div class="l">Agriculteurs GNR</div><div class="v" data-count="50000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">3,86 €/hl remboursé</div></div>
+      <div class="card r"><span class="icon">🏗️</span><div class="l">BTP</div><div class="v" data-count="4000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">20 c€/L GNR mai 2026</div></div>
+    </div>
+
+    <div class="alert"><span class="ico">⚠️</span><div><strong>Prolongations successives</strong> : le dispositif Grands Rouleurs a été reporté du 30 juillet au 31 août, puis au <strong>30 septembre 2026</strong>. Vérifiez votre éligibilité dès maintenant.</div></div>
+
+    <div class="g2">
+      <div class="section">
+        <h3>✅ Conditions Grands Rouleurs</h3>
+        <ul class="crit">
+          <li><span class="c">✓</span><span class="lb">Résider fiscalement en France</span></li>
+          <li><span class="c">✓</span><span class="lb">Né avant le 1er janvier 2009</span></li>
+          <li><span class="c">✓</span><span class="lb">RFR par part</span><span class="vl">≤ 16 880 €</span></li>
+          <li><span class="c">✓</span><span class="lb">Revenus d'activité déclarés 2024</span></li>
+          <li><span class="c">✓</span><span class="lb">Non redevable IFI 2024</span></li>
+          <li><span class="c">✓</span><span class="lb">Trajet domicile-travail</span><span class="vl">≥ 15 km</span></li>
+          <li><span class="c">✓</span><span class="lb">OU distance annuelle</span><span class="vl">≥ 8 000 km</span></li>
+          <li><span class="c">✓</span><span class="lb">Véhicule 2/3/4 roues motorisé</span></li>
+          <li><span class="c">✓</span><span class="lb">Thermique / hybride non rechargeable</span></li>
+          <li><span class="c">✓</span><span class="lb">Véhicule assuré</span></li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>📋 Barème Transporteurs</h3>
+        <table>
+          <thead><tr><th>Type véhicule</th><th style="text-align:right">Montant</th></tr></thead>
+          <tbody>
+            <tr><td>Autocars</td><td style="text-align:right;font-family:var(--mono);font-weight:700">250 €</td></tr>
+            <tr><td>Ambulances, VSL</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
+            <tr><td>PL ≤ 3,5T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
+            <tr><td>PL > 3,5T et ≤ 7,5T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
+            <tr><td>PL > 7,5T et < 26T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
+            <tr><td>PL ≥ 26T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">400 €</td></tr>
+            <tr><td>Tracteurs routiers</td><td style="text-align:right;font-family:var(--mono);font-weight:700">500 €</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: DATA LIVE -->
+  <div class="tab-content" id="tab-data">
+    <div class="stats">
+      <div class="card">
+        <div class="icon">⛽</div>
+        <div class="l">Stations</div>
+        <div class="v" id="statStations">—</div>
+        <div class="u">en France</div>
+      </div>
+      <div class="card g">
+        <div class="icon">📊</div>
+        <div class="l">Prix moyen Gazole</div>
+        <div class="v" id="statGazole">—</div>
+        <div class="u">€/L</div>
+      </div>
+      <div class="card y">
+        <div class="icon">📊</div>
+        <div class="l">Prix moyen SP95-E10</div>
+        <div class="v" id="statSp95">—</div>
+        <div class="u">€/L</div>
+      </div>
+      <div class="card r">
+        <div class="icon">📊</div>
+        <div class="l">Prix moyen E85</div>
+        <div class="v" id="statE85">—</div>
+        <div class="u">€/L</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📊 Prix le plus bas / le plus élevé</h3>
+      <div id="minmax"></div>
+    </div>
+
+    <div class="section">
+      <h3>🏆 Top 5 des stations les moins chères</h3>
+      <div class="grid-stations" id="topStations"></div>
+    </div>
+
+    <div class="section">
+      <h3>⛽ Toutes les stations (<span id="allStationsCount">0</span>)</h3>
+      <div class="grid-stations" id="allStations"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: CALENDAR -->
+  <div class="tab-content" id="tab-calendar">
+    <div class="section">
+      <h3>📅 Calendrier complet des dispositifs</h3>
+      <table>
+        <thead><tr><th>Dispositif</th><th>Public</th><th>Ouverture</th><th>Clôture</th><th>Canal</th><th>Statut</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Grands Rouleurs</strong></td><td><span class="tag grand">Particuliers</span></td><td>27 mai 2026</td><td><strong>30 sept. 2026</strong></td><td>impots.gouv.fr</td><td><span class="tag urgent">Dernière chance</span></td></tr>
+          <tr><td><strong>Transporteurs</strong></td><td><span class="tag trans">Entreprises</span></td><td>19 avril 2026</td><td>15 juin 2026</td><td>ASP</td><td><span class="tag closed">Clôturé</span></td></tr>
+          <tr><td><strong>Agriculteurs GNR</strong></td><td><span class="tag agri">Exploitants</span></td><td>5 mai 2026</td><td>31 juillet 2026</td><td>Chorus Pro</td><td><span class="tag closed">Clôturé</span></td></tr>
+          <tr><td><strong>BTP</strong></td><td><span class="tag btp">TPE/PME</span></td><td>8 juin 2026</td><td>—</td><td>impots.gouv.fr</td><td><span class="tag open">Ouvert</span></td></tr>
+          <tr><td><strong>Pêche</strong></td><td><span class="tag peche">Professionnels</span></td><td>1er juin 2026</td><td>—</td><td>ASP</td><td><span class="tag open">Ouvert</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4: SIMULATOR -->
+  <div class="tab-content" id="tab-simulator">
+    <div class="section">
+      <h3>🧮 Simulateur d'éligibilité Grands Rouleurs</h3>
+      <p style="color:var(--g500);font-size:13px;margin-bottom:20px">Renseignez vos informations pour vérifier votre éligibilité à l'indemnité carburant.</p>
+      <div class="sim-grid">
+        <div class="sim-field"><label>RFR par part (€)</label><input type="number" id="simRfr" value="15000"></div>
+        <div class="sim-field"><label>Distance domicile-travail (km)</label><input type="number" id="simKm" value="20"></div>
+        <div class="sim-field"><label>Distance annuelle (km)</label><input type="number" id="simKmYear" value="10000"></div>
+        <div class="sim-field"><label>Année de naissance</label><input type="number" id="simYear" value="1985"></div>
+        <div class="sim-field"><label>Motorisation</label><select id="simMotor"><option value="thermique">Thermique</option><option value="hybride">Hybride non rechargeable</option><option value="electrique">Électrique / hybride rechargeable</option></select></div>
+        <div class="sim-field"><label>Redevable IFI 2024</label><select id="simIfi"><option value="non">Non</option><option value="oui">Oui</option></select></div>
+      </div>
+      <button class="nav-tab active" id="simRun" style="margin-top:10px">🔍 Vérifier mon éligibilité</button>
+      <div id="simResult"></div>
+    </div>
+  </div>
+
+  <!-- TAB 5: CHARTS -->
+  <div class="tab-content" id="tab-charts">
+    <div class="section">
+      <h3>📈 Répartition des prix — Gazole</h3>
+      <div class="chart"><canvas id="chartGazole"></canvas></div>
+    </div>
+    <div class="section">
+      <h3>📈 Comparaison des carburants</h3>
+      <div class="chart"><canvas id="chartCompare"></canvas></div>
+    </div>
+    <div class="section">
+      <h3>📉 Évolution mensuelle (données simulées)</h3>
+      <div class="chart-filters">
+        <button class="chart-filter active" data-chart="all">Tous</button>
+        <button class="chart-filter" data-chart="gazole">Gazole</button>
+        <button class="chart-filter" data-chart="sp95">SP95-E10</button>
+        <button class="chart-filter" data-chart="e85">E85</button>
+      </div>
+      <div class="chart"><canvas id="fuelChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TAB 6: LINKS -->
+  <div class="tab-content" id="tab-links">
+    <div class="section">
+      <h3>🔗 Portails officiels</h3>
+      <div class="links">
+        <a href="https://www.info.gouv.fr/actualite/aides-au-carburant" target="_blank" class="link"><div class="li">📰</div><div><div class="lt">info.gouv.fr</div><div class="ld">Page officielle</div></div></a>
+        <a href="https://www.impots.gouv.fr/simulateur-aide-carburant-grands-rouleurs" target="_blank" class="link"><div class="li">🧮</div><div><div class="lt">Simulateur</div><div class="ld">Vérifier éligibilité</div></div></a>
+        <a href="https://chorus-pro.gouv.fr" target="_blank" class="link"><div class="li">🌾</div><div><div class="lt">Chorus Pro</div><div class="ld">Agriculteurs</div></div></a>
+        <a href="https://www.asp-public.fr" target="_blank" class="link"><div class="li">🚛</div><div><div class="lt">ASP Public</div><div class="ld">Transporteurs</div></div></a>
+        <a href="https://www.data.gouv.fr/fr/datasets/prix-des-carburants-en-france-flux-instantane-v2/" target="_blank" class="link"><div class="li">⛽</div><div><div class="lt">Prix Carburants</div><div class="ld">data.gouv.fr</div></div></a>
+        <a href="https://www.legifrance.gouv.fr" target="_blank" class="link"><div class="li">⚖️</div><div><div class="lt">Légifrance</div><div class="ld">Décret 2026-333</div></div></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="flag">🇫🇷</div>
+    <div><strong>Liberté · Égalité · Fraternité</strong></div>
+    <div style="margin-top:8px">Monitor Aides Carburant 2026 · Live Data · MIT License</div>
+  </div>
+
 </div>
-<div class="tab-content active" id="tab-overview">
-<div class="hero">
-<h2>Aides au carburant 2026</h2>
-<p>Dispositif exceptionnel mis en place pour atténuer l impact de la hausse des prix des carburants sur les ménages et les entreprises françaises.</p>
-<div class="meta">
-<div class="mi"><div class="l">Grands Rouleurs</div><div class="v" data-count="100">0 €</div></div>
-<div class="mi"><div class="l">Bénéficiaires</div><div class="v" data-count="5.5" data-suffix=" M">0</div></div>
-<div class="mi"><div class="l">Date limite</div><div class="v">30/09/26</div></div>
-</div>
-</div>
-<div class="stats">
-<div class="card"><span class="icon">👤</span><div class="l">Grands Rouleurs</div><div class="v" data-count="100">0</div><div class="u">€ par bénéficiaire</div><div class="d">≥ 15 km ou 8 000 km/an</div></div>
-<div class="card g"><span class="icon">🚛</span><div class="l">Transporteurs</div><div class="v" data-count="60000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">Barème par véhicule</div></div>
-<div class="card y"><span class="icon">🌾</span><div class="l">Agriculteurs GNR</div><div class="v" data-count="50000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">3,86 €/hl remboursé</div></div>
-<div class="card r"><span class="icon">🏗️</span><div class="l">BTP</div><div class="v" data-count="4000" data-suffix=" €">0</div><div class="u">plafond entreprise</div><div class="d">20 c€/L GNR mai 2026</div></div>
-</div>
-<div class="alert"><span class="ico">⚠️</span><div><strong>Prolongations successives</strong> : le dispositif Grands Rouleurs a été reporté du 30 juillet au 31 août, puis au <strong>30 septembre 2026</strong>. Vérifiez votre éligibilité dès maintenant.</div></div>
-<div class="g2">
-<div class="section">
-<h3>✅ Conditions Grands Rouleurs</h3>
-<ul class="crit">
-<li><span class="c">✓</span><span class="lb">Résider fiscalement en France</span></li>
-<li><span class="c">✓</span><span class="lb">Né avant le 1er janvier 2009</span></li>
-<li><span class="c">✓</span><span class="lb">RFR par part</span><span class="vl">≤ 16 880 €</span></li>
-<li><span class="c">✓</span><span class="lb">Revenus d activité déclarés 2024</span></li>
-<li><span class="c">✓</span><span class="lb">Non redevable IFI 2024</span></li>
-<li><span class="c">✓</span><span class="lb">Trajet domicile-travail</span><span class="vl">≥ 15 km</span></li>
-<li><span class="c">✓</span><span class="lb">OU distance annuelle</span><span class="vl">≥ 8 000 km</span></li>
-<li><span class="c">✓</span><span class="lb">Véhicule 2/3/4 roues motorisé</span></li>
-<li><span class="c">✓</span><span class="lb">Thermique / hybride non rechargeable</span></li>
-<li><span class="c">✓</span><span class="lb">Véhicule assuré</span></li>
-</ul>
-</div>
-<div class="section">
-<h3>📋 Barème Transporteurs</h3>
-<table>
-<thead><tr><th>Type véhicule</th><th style="text-align:right">Montant</th></tr></thead>
-<tbody>
-<tr><td>Autocars</td><td style="text-align:right;font-family:var(--mono);font-weight:700">250 €</td></tr>
-<tr><td>Ambulances, VSL</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
-<tr><td>PL ≤ 3,5T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
-<tr><td>PL > 3,5T et ≤ 7,5T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
-<tr><td>PL > 7,5T et < 26T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">70 €</td></tr>
-<tr><td>PL ≥ 26T</td><td style="text-align:right;font-family:var(--mono);font-weight:700">400 €</td></tr>
-<tr><td>Tracteurs routiers</td><td style="text-align:right;font-family:var(--mono);font-weight:700">500 €</td></tr>
-</tbody></table>
-</div>
-</div>
-</div>
-<div class="tab-content" id="tab-calendar">
-<div class="section">
-<h3>📅 Calendrier complet des dispositifs</h3>
-<table>
-<thead><tr><th>Dispositif</th><th>Public</th><th>Ouverture</th><th>Clôture</th><th>Canal</th><th>Statut</th></tr></thead>
-<tbody>
-<tr><td><strong>Grands Rouleurs</strong></td><td><span class="tag grand">Particuliers</span></td><td>27 mai 2026</td><td><strong>30 sept. 2026</strong></td><td>impots.gouv.fr</td><td><span class="tag urgent">Dernière chance</span></td></tr>
-<tr><td><strong>Transporteurs</strong></td><td><span class="tag trans">Entreprises</span></td><td>19 avril 2026</td><td>15 juin 2026</td><td>ASP</td><td><span class="tag closed">Clôturé</span></td></tr>
-<tr><td><strong>Agriculteurs GNR</strong></td><td><span class="tag agri">Exploitants</span></td><td>5 mai 2026</td><td>31 juillet 2026</td><td>Chorus Pro</td><td><span class="tag closed">Clôturé</span></td></tr>
-<tr><td><strong>BTP</strong></td><td><span class="tag btp">TPE/PME</span></td><td>8 juin 2026</td><td>—</td><td>impots.gouv.fr</td><td><span class="tag open">Ouvert</span></td></tr>
-<tr><td><strong>Pêche</strong></td><td><span class="tag peche">Professionnels</span></td><td>1er juin 2026</td><td>—</td><td>ASP</td><td><span class="tag open">Ouvert</span></td></tr>
-</tbody></table>
-</div>
-</div>
-<div class="tab-content" id="tab-simulator">
-<div class="section">
-<h3>🧮 Simulateur d éligibilité Grands Rouleurs</h3>
-<p style="color:var(--g500);font-size:13px;margin-bottom:20px">Renseignez vos informations pour vérifier votre éligibilité à l indemnité carburant.</p>
-<div class="sim-grid">
-<div class="sim-field"><label>RFR par part (€)</label><input type="number" id="simRfr" placeholder="ex: 15000" value="15000"></div>
-<div class="sim-field"><label>Distance domicile-travail (km)</label><input type="number" id="simKm" placeholder="ex: 20" value="20"></div>
-<div class="sim-field"><label>Distance annuelle (km)</label><input type="number" id="simKmYear" placeholder="ex: 10000" value="10000"></div>
-<div class="sim-field"><label>Année de naissance</label><input type="number" id="simYear" placeholder="ex: 1985" value="1985"></div>
-<div class="sim-field"><label>Motorisation</label><select id="simMotor"><option value="thermique">Thermique</option><option value="hybride">Hybride non rechargeable</option><option value="electrique">Électrique / hybride rechargeable</option></select></div>
-<div class="sim-field"><label>Redevable IFI 2024</label><select id="simIfi"><option value="non">Non</option><option value="oui">Oui</option></select></div>
-</div>
-<button class="nav-tab active" id="simRun" style="margin-top:10px">🔍 Vérifier mon éligibilité</button>
-<div id="simResult"></div>
-</div>
-</div>
-<div class="tab-content" id="tab-charts">
-<div class="section">
-<h3>📈 Évolution des prix des carburants</h3>
-<p style="font-size:13px;color:var(--g500);margin-bottom:8px">Source : data.gouv.fr — Flux instantané v2 · Mise à jour toutes les 10 minutes</p>
-<div class="chart-filters">
-<button class="chart-filter active" data-chart="all">Tous</button>
-<button class="chart-filter" data-chart="gazole">Gazole</button>
-<button class="chart-filter" data-chart="sp95">SP95-E10</button>
-<button class="chart-filter" data-chart="e85">E85</button>
-</div>
-<div class="chart"><canvas id="fuelChart"></canvas></div>
-</div>
-</div>
-<div class="tab-content" id="tab-links">
-<div class="section">
-<h3>🔗 Portails officiels</h3>
-<div class="links">
-<a href="https://www.info.gouv.fr/actualite/aides-au-carburant" target="_blank" class="link"><div class="li">📰</div><div><div class="lt">info.gouv.fr</div><div class="ld">Page officielle du dispositif</div></div></a>
-<a href="https://www.impots.gouv.fr/simulateur-aide-carburant-grands-rouleurs" target="_blank" class="link"><div class="li">🧮</div><div><div class="lt">Simulateur Grands Rouleurs</div><div class="ld">Vérifier éligibilité</div></div></a>
-<a href="https://chorus-pro.gouv.fr" target="_blank" class="link"><div class="li">🌾</div><div><div class="lt">Chorus Pro</div><div class="ld">Agriculteurs (GNR)</div></div></a>
-<a href="https://www.asp-public.fr" target="_blank" class="link"><div class="li">🚛</div><div><div class="lt">ASP Public</div><div class="ld">Transporteurs & Pêche</div></div></a>
-<a href="https://www.data.gouv.fr/fr/datasets/prix-des-carburants-en-france-flux-instantane-v2/" target="_blank" class="link"><div class="li">⛽</div><div><div class="lt">Prix Carburants</div><div class="ld">Dataset data.gouv.fr</div></div></a>
-<a href="https://www.legifrance.gouv.fr" target="_blank" class="link"><div class="li">⚖️</div><div><div class="lt">Légifrance</div><div class="ld">Décret n° 2026-333</div></div></a>
-</div>
-</div>
-</div>
-<div class="footer">
-<div class="flag">🇫🇷</div>
-<div><strong>Liberté · Égalité · Fraternité</strong></div>
-<div style="margin-top:8px">Monitor Aides Carburant 2026 · MIT License · Fait avec ❤️</div>
-</div>
-</div>
+
 <button class="scroll-top" id="scrollTop">↑</button>
+
 <script>
-// ========== THEME TOGGLE ==========
+// =====================================================
+// ÉTAT GLOBAL
+// =====================================================
+const state = {
+  stations: [],
+  charts: {},
+  lastUpdate: null
+};
+
+// =====================================================
+// THÈME
+// =====================================================
 const themeToggle = document.getElementById('themeToggle');
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 
 themeToggle.addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
   localStorage.setItem('theme', next);
 });
 
-// ========== NAV TABS ==========
+// =====================================================
+// NAV TABS
+// =====================================================
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const target = tab.dataset.tab;
+    if (!target) return;
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('tab-' + target).classList.add('active');
+    const content = document.getElementById('tab-' + target);
+    if (content) content.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 
-// ========== COUNTERS ANIMATION ==========
+// =====================================================
+// COMPTEURS ANIMÉS
+// =====================================================
 function animateCounter(el) {
   const target = parseFloat(el.dataset.count);
   const suffix = el.dataset.suffix || '';
@@ -368,35 +468,284 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('[data-count]').forEach(el => observer.observe(el));
 
-// ========== CHART ==========
+// =====================================================
+// CHARGEMENT DES DONNÉES LIVE
+// =====================================================
+async function loadData() {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusTxt');
+  const meta = document.getElementById('statusMeta');
+
+  dot.className = 'dot';
+  txt.textContent = 'Chargement des données…';
+  meta.textContent = '';
+
+  try {
+    const r = await fetch('data/prix-carburants.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const data = await r.json();
+    state.stations = Array.isArray(data) ? data : (data.results || []);
+    state.lastUpdate = new Date();
+
+    dot.className = 'dot ok';
+    txt.innerHTML = `<strong>${state.stations.length.toLocaleString('fr-FR')}</strong> stations chargées avec succès`;
+    meta.textContent = `Dernière MAJ : ${state.lastUpdate.toLocaleTimeString('fr-FR')}`;
+
+    renderStats();
+    renderMinMax();
+    renderTopStations();
+    renderAllStations();
+    renderCharts();
+
+  } catch (err) {
+    dot.className = 'dot err';
+    txt.innerHTML = `<strong>Erreur</strong> : impossible de charger <code>data/prix-carburants.json</code>`;
+    meta.textContent = err.message;
+    console.error('Erreur de chargement :', err);
+  }
+}
+
+// =====================================================
+// STATS
+// =====================================================
+function getValidPrices(field) {
+  return state.stations
+    .map(s => parseFloat(s[field]))
+    .filter(v => !isNaN(v) && v > 0);
+}
+function avg(arr) {
+  if (!arr.length) return null;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+function renderStats() {
+  const gazole = getValidPrices('gazole_prix');
+  const sp95 = getValidPrices('sp95_prix');
+  const e85 = getValidPrices('e85_prix');
+
+  document.getElementById('statStations').textContent = state.stations.length.toLocaleString('fr-FR');
+  document.getElementById('statGazole').textContent = avg(gazole) ? avg(gazole).toFixed(3) + ' €' : '—';
+  document.getElementById('statSp95').textContent = avg(sp95) ? avg(sp95).toFixed(3) + ' €' : '—';
+  document.getElementById('statE85').textContent = avg(e85) ? avg(e85).toFixed(3) + ' €' : '—';
+}
+
+// =====================================================
+// MIN / MAX
+// =====================================================
+function renderMinMax() {
+  const el = document.getElementById('minmax');
+  const fuels = [
+    { key: 'gazole_prix', label: 'Gazole', color: 'var(--blue)' },
+    { key: 'sp95_prix', label: 'SP95-E10', color: 'var(--red)' },
+    { key: 'e85_prix', label: 'E85', color: 'var(--green)' }
+  ];
+
+  let html = '';
+  fuels.forEach(f => {
+    const valid = state.stations
+      .map(s => ({ prix: parseFloat(s[f.key]), station: s }))
+      .filter(x => !isNaN(x.prix) && x.prix > 0);
+
+    if (!valid.length) {
+      html += `<div style="margin-bottom:16px;padding:16px;background:var(--g50);border-radius:10px">
+        <strong>${f.label}</strong> : aucune donnée disponible
+      </div>`;
+      return;
+    }
+
+    const min = valid.reduce((a, b) => a.prix < b.prix ? a : b);
+    const max = valid.reduce((a, b) => a.prix > b.prix ? a : b);
+
+    html += `
+      <div style="margin-bottom:16px;padding:16px;background:var(--g50);border-radius:10px">
+        <div style="font-weight:700;color:${f.color};margin-bottom:8px">${f.label}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:11px;color:var(--g500)">PRIX LE PLUS BAS</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:800;color:var(--green)">
+              ${min.prix.toFixed(3)} €
+            </div>
+            <div style="font-size:12px;color:var(--g700)">${min.station.ville || '—'}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--g500)">PRIX LE PLUS ÉLEVÉ</div>
+            <div style="font-family:var(--mono);font-size:20px;font-weight:800;color:var(--red)">
+              ${max.prix.toFixed(3)} €
+            </div>
+            <div style="font-size:12px;color:var(--g700)">${max.station.ville || '—'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  el.innerHTML = html;
+}
+
+// =====================================================
+// TOP STATIONS
+// =====================================================
+function renderTopStations() {
+  const el = document.getElementById('topStations');
+  const valid = state.stations
+    .filter(s => !isNaN(parseFloat(s.gazole_prix)) && parseFloat(s.gazole_prix) > 0)
+    .sort((a, b) => parseFloat(a.gazole_prix) - parseFloat(b.gazole_prix))
+    .slice(0, 5);
+
+  if (!valid.length) {
+    el.innerHTML = '<p style="color:var(--g500)">Aucune station avec prix gazole disponible.</p>';
+    return;
+  }
+
+  el.innerHTML = valid.map(s => `
+    <div class="station">
+      <div class="name">${escapeHtml(s.adresse || s.ville || 'Station')}</div>
+      <div class="city">${escapeHtml(s.ville || '—')} ${s.cp ? '· ' + s.cp : ''}</div>
+      <div class="prices">
+        ${s.gazole_prix ? `<span class="price gazole">Gazole ${parseFloat(s.gazole_prix).toFixed(3)} €</span>` : ''}
+        ${s.sp95_prix ? `<span class="price sp95">SP95 ${parseFloat(s.sp95_prix).toFixed(3)} €</span>` : ''}
+        ${s.e85_prix ? `<span class="price e85">E85 ${parseFloat(s.e85_prix).toFixed(3)} €</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// =====================================================
+// TOUTES LES STATIONS
+// =====================================================
+function renderAllStations() {
+  const el = document.getElementById('allStations');
+  const count = document.getElementById('allStationsCount');
+  count.textContent = state.stations.length.toLocaleString('fr-FR');
+
+  if (!state.stations.length) {
+    el.innerHTML = '<p style="color:var(--g500)">Aucune station.</p>';
+    return;
+  }
+
+  el.innerHTML = state.stations.slice(0, 100).map(s => `
+    <div class="station">
+      <div class="name">${escapeHtml(s.adresse || 'Station')}</div>
+      <div class="city">${escapeHtml(s.ville || '—')} ${s.cp ? '· ' + s.cp : ''}</div>
+      <div class="prices">
+        ${s.gazole_prix ? `<span class="price gazole">Gazole ${parseFloat(s.gazole_prix).toFixed(3)} €</span>` : ''}
+        ${s.sp95_prix ? `<span class="price sp95">SP95 ${parseFloat(s.sp95_prix).toFixed(3)} €</span>` : ''}
+        ${s.e85_prix ? `<span class="price e85">E85 ${parseFloat(s.e85_prix).toFixed(3)} €</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  if (state.stations.length > 100) {
+    el.innerHTML += `<p style="grid-column:1/-1;text-align:center;color:var(--g500);margin-top:16px;font-size:12px">
+      … et ${state.stations.length - 100} autres stations
+    </p>`;
+  }
+}
+
+// =====================================================
+// GRAPHIQUES
+// =====================================================
+function renderCharts() {
+  renderGazoleHistogram();
+  renderCompareChart();
+  initMonthlyChart();
+}
+
+function renderGazoleHistogram() {
+  const ctx = document.getElementById('chartGazole');
+  if (!ctx) return;
+  const prices = getValidPrices('gazole_prix');
+  if (!prices.length) return;
+
+  const min = Math.floor(Math.min(...prices) * 100) / 100;
+  const max = Math.ceil(Math.max(...prices) * 100) / 100;
+  const step = (max - min) / 10;
+  const bins = Array(10).fill(0);
+  const labels = [];
+
+  for (let i = 0; i < 10; i++) {
+    const lo = min + i * step;
+    const hi = lo + step;
+    labels.push(`${lo.toFixed(2)}-${hi.toFixed(2)}`);
+    prices.forEach(p => { if (p >= lo && p < hi) bins[i]++; });
+  }
+
+  if (state.charts.gazole) state.charts.gazole.destroy();
+  state.charts.gazole = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Nombre de stations', data: bins, backgroundColor: '#000091', borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+      }
+    }
+  });
+}
+
+function renderCompareChart() {
+  const ctx = document.getElementById('chartCompare');
+  if (!ctx) return;
+  const gazole = getValidPrices('gazole_prix');
+  const sp95 = getValidPrices('sp95_prix');
+  const e85 = getValidPrices('e85_prix');
+
+  if (state.charts.compare) state.charts.compare.destroy();
+  state.charts.compare = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Gazole', 'SP95-E10', 'E85'],
+      datasets: [
+        { label: 'Prix min', data: [Math.min(...gazole), Math.min(...sp95), Math.min(...e85)], backgroundColor: '#00a95f', borderRadius: 6 },
+        { label: 'Prix moyen', data: [avg(gazole), avg(sp95), avg(e85)], backgroundColor: '#000091', borderRadius: 6 },
+        { label: 'Prix max', data: [Math.max(...gazole), Math.max(...sp95), Math.max(...e85)], backgroundColor: '#E1000F', borderRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 12 } } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label} : ${c.parsed.y.toFixed(3)} €/L` } }
+      },
+      scales: { y: { beginAtZero: false, ticks: { callback: v => v.toFixed(2) + ' €', font: { size: 11 } } } }
+    }
+  });
+}
+
+// =====================================================
+// CHART MENSUEL (données simulées - remplacées quand historique dispo)
+// =====================================================
 const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sept','Oct'];
-const dataSets = {
+const monthlyData = {
   gazole: [1.72,1.75,1.78,1.85,1.82,1.79,1.76,1.74,1.77,1.80],
   sp95: [1.78,1.81,1.84,1.92,1.89,1.86,1.83,1.80,1.83,1.87],
   e85: [0.85,0.87,0.89,0.95,0.92,0.90,0.88,0.86,0.88,0.91]
 };
 
-let fuelChart;
-function initChart(filter = 'all') {
+function initMonthlyChart(filter = 'all') {
   const ctx = document.getElementById('fuelChart');
   if (!ctx) return;
-  if (fuelChart) fuelChart.destroy();
+  if (state.charts.monthly) state.charts.monthly.destroy();
 
   const datasets = [];
   if (filter === 'all' || filter === 'gazole') datasets.push({
-    label: 'Gazole', data: dataSets.gazole, borderColor: '#000091',
+    label: 'Gazole', data: monthlyData.gazole, borderColor: '#000091',
     backgroundColor: 'rgba(0,0,145,.1)', fill: true, tension: .3, borderWidth: 3
   });
   if (filter === 'all' || filter === 'sp95') datasets.push({
-    label: 'SP95-E10', data: dataSets.sp95, borderColor: '#E1000F',
+    label: 'SP95-E10', data: monthlyData.sp95, borderColor: '#E1000F',
     backgroundColor: 'rgba(225,0,15,.05)', fill: true, tension: .3, borderWidth: 3
   });
   if (filter === 'all' || filter === 'e85') datasets.push({
-    label: 'E85', data: dataSets.e85, borderColor: '#00a95f',
+    label: 'E85', data: monthlyData.e85, borderColor: '#00a95f',
     backgroundColor: 'rgba(0,169,95,.05)', fill: true, tension: .3, borderWidth: 3
   });
 
-  fuelChart = new Chart(ctx, {
+  state.charts.monthly = new Chart(ctx, {
     type: 'line',
     data: { labels: months, datasets },
     options: {
@@ -419,17 +768,17 @@ function initChart(filter = 'all') {
   });
 }
 
-if (document.getElementById('fuelChart')) initChart();
-
 document.querySelectorAll('.chart-filter').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.chart-filter').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    initChart(btn.dataset.chart);
+    initMonthlyChart(btn.dataset.chart);
   });
 });
 
-// ========== SIMULATEUR ==========
+// =====================================================
+// SIMULATEUR
+// =====================================================
 const simRun = document.getElementById('simRun');
 if (simRun) {
   simRun.addEventListener('click', () => {
@@ -458,10 +807,10 @@ if (simRun) {
       <div class="big">${eligible ? '✅ ÉLIGIBLE' : '❌ NON ÉLIGIBLE'}</div>
       <div class="label">${score}/${total} critères validés</div>
       <div class="detail">
-        ${checks.rfr ? '✓' : '✗'} RFR ≤ 16 880 € · 
-        ${checks.km ? '✓' : '✗'} Distance (≥ 15 km ou 8 000 km/an) · 
-        ${checks.age ? '✓' : '✗'} Né avant 2009 · 
-        ${checks.motor ? '✓' : '✗'} Motorisation compatible · 
+        ${checks.rfr ? '✓' : '✗'} RFR ≤ 16 880 € ·
+        ${checks.km ? '✓' : '✗'} Distance (≥ 15 km ou 8 000 km/an) ·
+        ${checks.age ? '✓' : '✗'} Né avant 2009 ·
+        ${checks.motor ? '✓' : '✗'} Motorisation compatible ·
         ${checks.ifi ? '✓' : '✗'} Non redevable IFI
       </div>
       ${eligible ? '<div class="detail" style="margin-top:16px;font-size:14px"><strong>💰 Montant estimé : 100 €</strong></div>' : ''}
@@ -470,24 +819,29 @@ if (simRun) {
   });
 }
 
-// ========== SCROLL PROGRESS + SCROLL TOP ==========
+// =====================================================
+// SCROLL PROGRESS + SCROLL TOP
+// =====================================================
 const progress = document.getElementById('progress');
 const scrollTop = document.getElementById('scrollTop');
 
 window.addEventListener('scroll', () => {
   const h = document.documentElement.scrollHeight - window.innerHeight;
-  const pct = (window.scrollY / h) * 100;
+  const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
   progress.style.width = pct + '%';
   scrollTop.classList.toggle('visible', window.scrollY > 400);
 });
 
 scrollTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-// ========== EXPORT PDF ==========
+// =====================================================
+// EXPORT PDF
+// =====================================================
 document.getElementById('exportPdf').addEventListener('click', () => {
   if (typeof window.jspdf === 'undefined') { alert('jsPDF non chargé'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+
   doc.setFillColor(0, 0, 145);
   doc.rect(0, 0, 210, 30, 'F');
   doc.setTextColor(255, 255, 255);
@@ -505,16 +859,16 @@ document.getElementById('exportPdf').addEventListener('click', () => {
     '• Grands Rouleurs : 100 € par bénéficiaire',
     '  Conditions : RFR ≤ 16 880 €, ≥ 15 km ou 8 000 km/an',
     '',
-    '• Transporteurs : jusqu à 60 000 € par entreprise',
+    '• Transporteurs : jusqu\'à 60 000 € par entreprise',
     '  Barème par type de véhicule',
     '',
-    '• Agriculteurs (GNR) : jusqu à 50 000 € par entreprise',
+    '• Agriculteurs (GNR) : jusqu\'à 50 000 € par entreprise',
     '  Remboursement 3,86 €/hl',
     '',
-    '• BTP : jusqu à 4 000 € par entreprise',
+    '• BTP : jusqu\'à 4 000 € par entreprise',
     '  20 c€/L sur GNR de mai 2026',
     '',
-    '• Pêche : 20 c€/L sur carburant d avril 2026'
+    '• Pêche : 20 c€/L sur carburant d\'avril 2026'
   ];
   let y = 55;
   lines.forEach(line => {
@@ -536,11 +890,59 @@ document.getElementById('exportPdf').addEventListener('click', () => {
   y = 35;
   dates.forEach(line => { doc.text('• ' + line, 14, y); y += 7; });
 
+  // Ajout des stats live si disponibles
+  if (state.stations.length) {
+    doc.addPage();
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('Données live — Prix carburants', 14, 20);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    y = 35;
+    doc.text(`• Stations analysées : ${state.stations.length.toLocaleString('fr-FR')}`, 14, y); y += 7;
+    const gazole = getValidPrices('gazole_prix');
+    const sp95 = getValidPrices('sp95_prix');
+    const e85 = getValidPrices('e85_prix');
+    if (gazole.length) { doc.text(`• Gazole — min : ${Math.min(...gazole).toFixed(3)} € · moy : ${avg(gazole).toFixed(3)} € · max : ${Math.max(...gazole).toFixed(3)} €`, 14, y); y += 7; }
+    if (sp95.length) { doc.text(`• SP95-E10 — min : ${Math.min(...sp95).toFixed(3)} € · moy : ${avg(sp95).toFixed(3)} € · max : ${Math.max(...sp95).toFixed(3)} €`, 14, y); y += 7; }
+    if (e85.length) { doc.text(`• E85 — min : ${Math.min(...e85).toFixed(3)} € · moy : ${avg(e85).toFixed(3)} € · max : ${Math.max(...e85).toFixed(3)} €`, 14, y); y += 7; }
+  }
+
   doc.save('monitor-aides-carburant-2026.pdf');
 });
 
-// ========== PRINT ==========
+// =====================================================
+// PRINT
+// =====================================================
 document.getElementById('printPage').addEventListener('click', () => window.print());
+
+// =====================================================
+// RELOAD
+// =====================================================
+document.getElementById('reloadData').addEventListener('click', () => {
+  Object.values(state.charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  state.charts = {};
+  loadData();
+});
+
+// =====================================================
+// UTILITAIRES
+// =====================================================
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// =====================================================
+// DÉMARRAGE
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  initMonthlyChart('all');
+});
+
+// Auto-reload toutes les 5 minutes
+setInterval(loadData, 5 * 60 * 1000);
 </script>
+
 </body>
 </html>
